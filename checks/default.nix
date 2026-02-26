@@ -21,4 +21,13 @@
       gondolinPackage
       ;
   };
+
+  vm-module-customization = import ./module-customization.nix {
+    inherit
+      pkgs
+      system
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
