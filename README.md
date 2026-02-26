@@ -2,6 +2,19 @@
 
 Minimal Nix flake for building [Gondolin](https://github.com/earendil-works/gondolin/) guest assets from NixOS and running them.
 
+## Run Gondolin directly (no install, default Alpine guest)
+
+If you just want a quick Gondolin CLI run without installing anything:
+
+```bash
+nix run github:luizribeiro/gondolin-nix#gondolin -- bash
+# or
+nix run github:luizribeiro/gondolin-nix#gondolin -- exec -- /bin/true
+```
+
+This uses Gondolin's default behavior (Alpine guest assets), without custom NixOS guest configuration.
+For custom NixOS guests and reproducible assets, use the template/direct flows below.
+
 ## Template usage
 
 ```bash
@@ -13,14 +26,6 @@ Interactive shell:
 
 ```bash
 nix run -- bash
-```
-
-Example session:
-
-```text
-[root@nixos:/]# uname -a
-Linux nixos 6.12.0 #1-NixOS SMP PREEMPT_DYNAMIC ... aarch64 GNU/Linux
-[root@nixos:/]# exit
 ```
 
 Other Gondolin subcommands work too, for example:
