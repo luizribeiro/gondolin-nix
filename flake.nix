@@ -10,15 +10,9 @@
   outputs = { nixpkgs, flake-utils, git-hooks, ... }:
     let
       overlay = import ./lib/overlay.nix;
-      mkPkgsForSystem = system: import nixpkgs {
-        inherit system;
-        overlays = [ overlay ];
-      };
 
       gondolinLib = import ./lib {
-        lib = nixpkgs.lib;
-        nixosSystem = nixpkgs.lib.nixosSystem;
-        inherit mkPkgsForSystem;
+        inherit nixpkgs overlay;
       };
 
       supportedSystems = [
@@ -39,7 +33,10 @@
     }
     // flake-utils.lib.eachSystem supportedSystems (system:
       let
-        pkgs = mkPkgsForSystem system;
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ overlay ];
+        };
         gondolinPackage = pkgs.gondolin;
 
         pre-commit-check = git-hooks.lib.${system}.run {
