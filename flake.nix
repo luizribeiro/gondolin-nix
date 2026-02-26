@@ -54,5 +54,20 @@
             gondolinPackage
             ;
         };
+
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            jq
+            nushell
+            nixpkgs-fmt
+          ];
+
+          shellHook = ''
+            echo "gondolin-nix dev shell"
+            echo "- run checks: nix flake check"
+            echo "- format nix: nixpkgs-fmt ."
+            echo "- update gondolin: nu scripts/update-package.nu gondolin"
+          '';
+        };
       });
 }
