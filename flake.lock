@@ -1,28 +1,5 @@
 {
   "nodes": {
-    "agentix": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1772050642,
-        "narHash": "sha256-zQKscSdBGm73W8448CmK91kJ8UvX1BAp54bjXL8rWbQ=",
-        "owner": "luizribeiro",
-        "repo": "agentix",
-        "rev": "8c73dbf33803ada17ad83e40904d73a1435c5709",
-        "type": "github"
-      },
-      "original": {
-        "owner": "luizribeiro",
-        "repo": "agentix",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -59,7 +36,6 @@
     },
     "root": {
       "inputs": {
-        "agentix": "agentix",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs"
       }

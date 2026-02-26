@@ -1,6 +1,6 @@
 { lib
 , nixosSystem
-, agentix
+, mkPkgsForSystem
 }:
 let
   guestModule = import ../modules/guest;
@@ -16,7 +16,7 @@ let
     , modules ? [ ]
     }:
     let
-      gondolinPackages = agentix.packages.${guestSystem};
+      gondolinPackages = mkPkgsForSystem guestSystem;
     in
     nixosSystem {
       system = guestSystem;

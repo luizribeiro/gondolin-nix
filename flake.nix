@@ -4,20 +4,20 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-
-    agentix = {
-      url = "github:luizribeiro/agentix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-    };
   };
 
-  outputs = { nixpkgs, flake-utils, agentix, ... }:
+  outputs = { nixpkgs, flake-utils, ... }:
     let
+      overlay = import ./lib/overlay.nix;
+      mkPkgsForSystem = system: import nixpkgs {
+        inherit system;
+        overlays = [ overlay ];
+      };
+
       gondolinLib = import ./lib {
         lib = nixpkgs.lib;
         nixosSystem = nixpkgs.lib.nixosSystem;
-        inherit agentix;
+        inherit mkPkgsForSystem;
       };
 
       supportedSystems = [
@@ -38,8 +38,8 @@
     }
     // flake-utils.lib.eachSystem supportedSystems (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        gondolinPackage = agentix.packages.${system}.gondolin;
+        pkgs = mkPkgsForSystem system;
+        gondolinPackage = pkgs.gondolin;
       in
       {
         packages = {
