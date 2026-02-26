@@ -155,3 +155,18 @@ Returns:
   - `vmlinuz-virt`
   - `initramfs.cpio.lz4`
   - `rootfs.ext4`
+
+## Development (optional)
+
+```bash
+# auto-load dev shell when entering the repo
+
+direnv allow
+```
+
+Entering the dev shell automatically installs git hooks via `cachix/git-hooks.nix`.
+
+Current pre-commit hooks:
+
+- `nixpkgs-fmt`
+- `nix flake check --no-build --no-write-lock-file`

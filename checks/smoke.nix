@@ -9,14 +9,14 @@ let
   };
 in
 pkgs.runCommand "gondolin-vm-smoke"
-  {
-    nativeBuildInputs = [
-      gondolinPackage
-      pkgs.coreutils
-      pkgs.jq
-      pkgs.gnugrep
-    ];
-  } ''
+{
+  nativeBuildInputs = [
+    gondolinPackage
+    pkgs.coreutils
+    pkgs.jq
+    pkgs.gnugrep
+  ];
+} ''
   set -euo pipefail
 
   export HOME="$TMPDIR"

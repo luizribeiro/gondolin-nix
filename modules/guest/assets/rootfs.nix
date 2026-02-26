@@ -9,13 +9,14 @@
     let
       toplevelClosure = pkgs.closureInfo { rootPaths = [ config.system.build.toplevel ]; };
     in
-    pkgs.runCommand "gondolin-rootfs.img" {
-      nativeBuildInputs = [
-        pkgs.coreutils
-        pkgs.e2fsprogs
-        pkgs.gnutar
-      ];
-    } ''
+    pkgs.runCommand "gondolin-rootfs.img"
+      {
+        nativeBuildInputs = [
+          pkgs.coreutils
+          pkgs.e2fsprogs
+          pkgs.gnutar
+        ];
+      } ''
       set -euo pipefail
 
       root="$TMPDIR/root"
