@@ -156,13 +156,4 @@ Returns:
   - `initramfs.cpio.lz4`
   - `rootfs.ext4`
 
-## Development (optional)
-
-```bash
-# auto-load dev shell when entering the repo
-
-direnv allow
-```
-
-Entering the dev shell automatically installs and manages git hooks via `cachix/git-hooks.nix`.
-Hook definitions live in `flake.nix` under `pre-commit-check`.
+For development workflow and contribution setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
