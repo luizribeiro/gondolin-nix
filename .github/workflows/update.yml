@@ -1,0 +1,186 @@
+name: Auto-update gondolin
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    outputs:
+      any-updated: ${{ steps.update.outputs.updated }}
+      current: ${{ steps.update.outputs.current }}
+      latest: ${{ steps.update.outputs.latest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Install Nushell
+        run: nix profile install nixpkgs#nushell
+
+      - name: Update gondolin
+        id: update
+        run: |
+          OUTPUT=$(nu scripts/update-package.nu gondolin)
+          echo "$OUTPUT"
+
+          UPDATED=$(echo "$OUTPUT" | grep "updated=" | cut -d= -f2)
+          CURRENT=$(echo "$OUTPUT" | grep "current=" | cut -d= -f2 || echo "")
+          LATEST=$(echo "$OUTPUT" | grep "latest=" | cut -d= -f2 || echo "")
+
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Prepare commit message
+        if: steps.update.outputs.updated == 'true'
+        run: |
+          echo "chore: update gondolin ${CURRENT} -> ${LATEST}" > commit-message.txt
+        env:
+          CURRENT: ${{ steps.update.outputs.current }}
+          LATEST: ${{ steps.update.outputs.latest }}
+
+      - name: Upload updated files
+        if: steps.update.outputs.updated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-gondolin
+          path: |
+            packages/gondolin/default.nix
+            packages/gondolin-guest-bins/default.nix
+            commit-message.txt
+
+  hashes-aarch64-darwin:
+    needs: update-version
+    if: needs.update-version.outputs.any-updated == 'true'
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download updated files
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-gondolin
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Install Nushell
+        run: nix profile install nixpkgs#nushell
+
+      - name: Refresh hashes (aarch64-darwin)
+        run: nu scripts/update-package.nu --refresh-hashes --system aarch64-darwin --write-hash-map hash-map-aarch64-darwin.json
+
+      - name: Upload hash map
+        uses: actions/upload-artifact@v4
+        with:
+          name: hash-map-aarch64-darwin
+          path: hash-map-aarch64-darwin.json
+
+  hashes-x86_64-linux:
+    needs: update-version
+    if: needs.update-version.outputs.any-updated == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download updated files
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-gondolin
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Install Nushell
+        run: nix profile install nixpkgs#nushell
+
+      - name: Refresh hashes (x86_64-linux)
+        run: nu scripts/update-package.nu --refresh-hashes --system x86_64-linux --write-hash-map hash-map-x86_64-linux.json
+
+      - name: Upload hash map
+        uses: actions/upload-artifact@v4
+        with:
+          name: hash-map-x86_64-linux
+          path: hash-map-x86_64-linux.json
+
+  commit:
+    needs: [update-version, hashes-aarch64-darwin, hashes-x86_64-linux]
+    if: >-
+      always() &&
+      needs.update-version.result == 'success' &&
+      needs.update-version.outputs.any-updated == 'true' &&
+      needs.hashes-aarch64-darwin.result == 'success' &&
+      needs.hashes-x86_64-linux.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download version updates
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-gondolin
+
+      - name: Download aarch64-darwin hash map
+        uses: actions/download-artifact@v4
+        with:
+          name: hash-map-aarch64-darwin
+          path: hash-maps
+
+      - name: Download x86_64-linux hash map
+        uses: actions/download-artifact@v4
+        with:
+          name: hash-map-x86_64-linux
+          path: hash-maps
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Install Nushell
+        run: nix profile install nixpkgs#nushell
+
+      - name: Apply hash maps
+        run: |
+          nu scripts/update-package.nu --apply-hash-map hash-maps/hash-map-aarch64-darwin.json
+          nu scripts/update-package.nu --apply-hash-map hash-maps/hash-map-x86_64-linux.json
+
+      - name: Verify no fake hashes remain
+        run: |
+          FAKE="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          if grep -R -n "$FAKE" packages/gondolin/default.nix; then
+            echo "Error: fake hash remains in gondolin package"
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        run: |
+          git add packages/gondolin/default.nix packages/gondolin-guest-bins/default.nix
+          git commit -m "$(cat commit-message.txt)"
+          git push
