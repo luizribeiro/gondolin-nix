@@ -37,7 +37,7 @@ nix run -- exec -- /bin/sh -lc 'echo hello from vm'
 
 ## Direct usage (without template)
 
-Use `mkGondolinGuestAssets` and `packages.<system>.gondolin` directly in your own flake, including your own guest NixOS customizations:
+Use `mkGondolinGuestAssets` and `packages.<hostSystem>.gondolin` directly in your own flake, including your own guest NixOS customizations:
 
 ```nix
 {
@@ -100,10 +100,10 @@ The following outputs are the supported, stable API surface of this flake.
 We avoid breaking changes to these APIs.
 
 - `lib.mkGondolinGuestAssets`
-- `packages.<system>.gondolin`
+- `packages.<hostSystem>.gondolin`
 - `templates.simple-vm`
 
-### `packages.<system>.gondolin`
+### `packages.<hostSystem>.gondolin`
 
 Gondolin host CLI package for the target system. This is what you execute to run subcommands like:
 
@@ -117,7 +117,7 @@ In downstream flakes, this is typically wrapped with `GONDOLIN_GUEST_DIR` set to
 A minimal starter flake that demonstrates end-to-end usage of the stable API:
 
 - builds assets with `lib.mkGondolinGuestAssets`
-- runs VM commands with `packages.<system>.gondolin`
+- runs VM commands with `packages.<hostSystem>.gondolin`
 
 Bootstrap with:
 
