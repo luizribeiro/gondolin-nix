@@ -31,15 +31,15 @@
         description = "Minimal consumer flake that runs Gondolin via gondolin-nix public APIs";
       };
     }
-    // flake-utils.lib.eachSystem supportedSystems (system:
+    // flake-utils.lib.eachSystem supportedSystems (hostSystem:
       let
         pkgs = import nixpkgs {
-          inherit system;
+          system = hostSystem;
           overlays = [ overlay ];
         };
         gondolinPackage = pkgs.gondolin;
 
-        pre-commit-check = git-hooks.lib.${system}.run {
+        pre-commit-check = git-hooks.lib.${hostSystem}.run {
           src = ./.;
           hooks = {
             nixpkgs-fmt.enable = true;
@@ -55,7 +55,7 @@
           (import ./checks {
             inherit
               pkgs
-              system
+              hostSystem
               gondolinLib
               gondolinPackage
               ;

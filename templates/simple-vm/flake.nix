@@ -13,12 +13,12 @@
   };
 
   outputs = { nixpkgs, flake-utils, gondolin-nix, ... }:
-    flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (system:
+    flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (hostSystem:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs { system = hostSystem; };
 
         guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
-          hostSystem = system;
+          inherit hostSystem;
           modules = [
             ({ pkgs, ... }: {
               environment.systemPackages = with pkgs; [
@@ -33,7 +33,7 @@
 
         gondolinBin = pkgs.writeShellScriptBin "gondolin-template-vm" ''
           export GONDOLIN_GUEST_DIR=${guestAssets}
-          exec ${gondolin-nix.packages.${system}.gondolin}/bin/gondolin "$@"
+          exec ${gondolin-nix.packages.${hostSystem}.gondolin}/bin/gondolin "$@"
         '';
       in
       {

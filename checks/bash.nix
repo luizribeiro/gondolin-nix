@@ -1,11 +1,11 @@
 { pkgs
-, system
+, hostSystem
 , gondolinLib
 , gondolinPackage
 }:
 let
   guestAssets = gondolinLib.mkGondolinGuestAssets {
-    hostSystem = system;
+    inherit hostSystem;
   };
 in
 pkgs.runCommand "gondolin-vm-bash"

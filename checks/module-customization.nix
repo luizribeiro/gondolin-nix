@@ -1,11 +1,11 @@
 { pkgs
-, system
+, hostSystem
 , gondolinLib
 , gondolinPackage
 }:
 let
   guestAssets = gondolinLib.mkGondolinGuestAssets {
-    hostSystem = system;
+    inherit hostSystem;
     modules = [
       ({ pkgs, ... }: {
         environment.systemPackages = with pkgs; [

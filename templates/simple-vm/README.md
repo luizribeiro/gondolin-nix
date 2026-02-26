@@ -3,7 +3,7 @@
 This template shows the minimal public API composition to run a VM:
 
 - `gondolin-nix.lib.mkGondolinGuestAssets`
-- `gondolin-nix.packages.<system>.gondolin`
+- `gondolin-nix.packages.<hostSystem>.gondolin`
 
 ## Usage
 

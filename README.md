@@ -48,12 +48,12 @@ Use `mkGondolinGuestAssets` and `packages.<system>.gondolin` directly in your ow
   };
 
   outputs = { nixpkgs, flake-utils, gondolin-nix, ... }:
-    flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (system:
+    flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (hostSystem:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs { system = hostSystem; };
 
         guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
-          hostSystem = system;
+          inherit hostSystem;
           modules = [
             ({ pkgs, ... }: {
               networking.hostName = "devbox";
@@ -75,7 +75,7 @@ Use `mkGondolinGuestAssets` and `packages.<system>.gondolin` directly in your ow
 
         gondolinBin = pkgs.writeShellScriptBin "gondolin-vm" ''
           export GONDOLIN_GUEST_DIR=${guestAssets}
-          exec ${gondolin-nix.packages.${system}.gondolin}/bin/gondolin "$@"
+          exec ${gondolin-nix.packages.${hostSystem}.gondolin}/bin/gondolin "$@"
         '';
       in {
         apps.default = {
@@ -137,7 +137,7 @@ mkGondolinGuestAssets {
 Arguments:
 
 - `hostSystem` (required, string)
-  - Host platform where assets are built, typically `system` from `eachSystem`.
+  - Host platform where assets are built, typically `hostSystem` from `eachSystem`.
   - Supported values today:
     - `aarch64-darwin`
     - `aarch64-linux`
