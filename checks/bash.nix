@@ -26,6 +26,11 @@ pkgs.runCommand "gondolin-vm-bash"
 
     spawn gondolin bash
 
+    # In some build environments, expect's pty can default to 1x1. That causes weird
+    # readline/prompt behavior where the visible prompt text is not emitted,
+    # making prompt matching flaky. Force a normal tty geometry.
+    stty rows 24 columns 80 < $spawn_out(slave,name)
+
     # Wait for the interactive prompt before sending command.
     set ready 0
     for {set i 0} {$i < 15} {incr i} {
