@@ -164,9 +164,5 @@ Returns:
 direnv allow
 ```
 
-Entering the dev shell automatically installs git hooks via `cachix/git-hooks.nix`.
-
-Current pre-commit hooks:
-
-- `nixpkgs-fmt`
-- `nix flake check --no-build --no-write-lock-file`
+Entering the dev shell automatically installs and manages git hooks via `cachix/git-hooks.nix`.
+Hook definitions live in `flake.nix` under `pre-commit-check`.

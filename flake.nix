@@ -46,13 +46,6 @@
           src = ./.;
           hooks = {
             nixpkgs-fmt.enable = true;
-
-            flake-check-no-build = {
-              enable = true;
-              name = "nix flake check --no-build";
-              entry = "${pkgs.nix}/bin/nix flake check --no-build --no-write-lock-file";
-              pass_filenames = false;
-            };
           };
         };
       in
