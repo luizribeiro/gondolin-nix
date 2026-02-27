@@ -18,6 +18,8 @@ let
   mkGondolinGuestSystem =
     { guestSystem
     , modules ? [ ]
+    , specialArgs ? { }
+    , modulesLocation ? null
     }:
     let
       gondolinPackages = import nixpkgs {
@@ -25,26 +27,38 @@ let
         overlays = [ overlay ];
       };
     in
-    nixosSystem {
-      system = guestSystem;
-      specialArgs = { inherit gondolinPackages; };
-      modules = [
-        guestModule
-        ({ ... }: {
-          virtualisation.gondolin.guest.enable = true;
-        })
-      ] ++ modules;
-    };
+    nixosSystem (
+      {
+        system = guestSystem;
+        specialArgs = specialArgs // { inherit gondolinPackages; };
+        modules = [
+          guestModule
+          ({ ... }: {
+            virtualisation.gondolin.guest.enable = true;
+          })
+        ] ++ modules;
+      }
+      // lib.optionalAttrs (modulesLocation != null) {
+        inherit modulesLocation;
+      }
+    );
 in
 {
   mkGondolinGuestAssets =
     { hostSystem
     , modules ? [ ]
+    , specialArgs ? { }
+    , modulesLocation ? null
     }:
     let
       guestSystem = linuxGuestSystemForHost hostSystem;
       guestConfiguration = mkGondolinGuestSystem {
-        inherit guestSystem modules;
+        inherit
+          guestSystem
+          modules
+          specialArgs
+          modulesLocation
+          ;
       };
     in
     guestConfiguration.config.system.build.gondolinAssets;

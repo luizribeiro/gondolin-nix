@@ -154,6 +154,8 @@ nix flake init -t github:luizribeiro/gondolin-nix#simple-vm
 mkGondolinGuestAssets {
   hostSystem = <string>;
   modules = [ ... ]; # optional
+  specialArgs = { ... }; # optional
+  modulesLocation = <path>; # optional
 }
 ```
 
@@ -169,6 +171,13 @@ Arguments:
 
 - `modules` (optional, list of NixOS modules, default `[]`)
   - Extra NixOS modules merged into guest configuration.
+
+- `specialArgs` (optional, attribute set, default `{}`)
+  - Extra arguments passed to all modules (same behavior as `nixosSystem`).
+  - `gondolinPackages` is always injected by `gondolin-nix`.
+
+- `modulesLocation` (optional, path, default `null`)
+  - Source location used in error messages for inline modules.
 
 Returns:
 

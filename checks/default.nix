@@ -30,4 +30,13 @@
       gondolinPackage
       ;
   };
+
+  vm-special-args = import ./special-args.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
