@@ -5,8 +5,6 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
 
-    # If you are developing locally, change this to:
-    # gondolin-nix.url = "path:/absolute/path/to/gondolin-nix";
     gondolin-nix.url = "github:luizribeiro/gondolin-nix";
     gondolin-nix.inputs.nixpkgs.follows = "nixpkgs";
     gondolin-nix.inputs.flake-utils.follows = "flake-utils";
