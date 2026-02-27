@@ -39,4 +39,13 @@
       gondolinPackage
       ;
   };
+
+  vm-wrapper-smoke = import ./vm-wrapper-smoke.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
