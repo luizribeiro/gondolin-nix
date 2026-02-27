@@ -48,4 +48,31 @@
       gondolinPackage
       ;
   };
+
+  vm-wrapper-flags = import ./vm-wrapper-flags.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
+  vm-wrapper-passthrough = import ./vm-wrapper-passthrough.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
+  vm-wrapper-precedence = import ./vm-wrapper-precedence.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
