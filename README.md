@@ -1,5 +1,8 @@
 # gondolin-nix
 
+[![Checks](https://github.com/luizribeiro/gondolin-nix/actions/workflows/check.yml/badge.svg)](https://github.com/luizribeiro/gondolin-nix/actions/workflows/check.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 Minimal Nix flake for building [Gondolin](https://github.com/earendil-works/gondolin/) guest assets from NixOS and running them.
 
 ## Run Gondolin directly (no install, default Alpine guest)
