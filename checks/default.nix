@@ -75,4 +75,13 @@
       gondolinPackage
       ;
   };
+
+  vm-wrapper-validation = import ./vm-wrapper-validation.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
