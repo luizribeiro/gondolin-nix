@@ -102,4 +102,13 @@
       gondolinPackage
       ;
   };
+
+  template-simple-vm = import ./template-simple-vm.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
 }
