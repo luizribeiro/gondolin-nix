@@ -7,7 +7,7 @@
     git-hooks.url = "github:cachix/git-hooks.nix";
   };
 
-  outputs = { nixpkgs, flake-utils, git-hooks, ... }:
+  outputs = { self, nixpkgs, flake-utils, git-hooks, ... }:
     let
       overlay = import ./lib/overlay.nix;
 
@@ -26,7 +26,10 @@
     in
     {
       lib = {
-        inherit (gondolinLib) mkGondolinGuestAssets;
+        inherit (gondolinLib)
+          mkGondolinGuestAssets
+          mkGondolinVM
+          ;
       };
 
       templates.simple-vm = {
@@ -61,9 +64,9 @@
                 inherit
                   pkgs
                   hostSystem
-                  gondolinLib
                   gondolinPackage
                   ;
+                gondolinLib = self.lib;
               })
               // {
                 pre-commit = pre-commit-check;
