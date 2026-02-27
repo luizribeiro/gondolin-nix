@@ -13,8 +13,6 @@
   outputs = { nixpkgs, flake-utils, gondolin-nix, ... }:
     flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (hostSystem:
       let
-        pkgs = import nixpkgs { system = hostSystem; };
-
         guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
           inherit hostSystem;
           modules = [
@@ -29,15 +27,15 @@
           ];
         };
 
-        gondolinBin = pkgs.writeShellScriptBin "gondolin-template-vm" ''
-          export GONDOLIN_GUEST_DIR=${guestAssets}
-          exec ${gondolin-nix.packages.${hostSystem}.gondolin}/bin/gondolin "$@"
-        '';
+        vmWrapper = gondolin-nix.lib.mkGondolinVM {
+          inherit hostSystem guestAssets;
+          name = "gondolin-template-vm";
+        };
       in
       {
         apps.default = {
           type = "app";
-          program = "${gondolinBin}/bin/gondolin-template-vm";
+          program = "${vmWrapper}/bin/gondolin-template-vm";
         };
       });
 }
