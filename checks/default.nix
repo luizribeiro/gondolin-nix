@@ -76,6 +76,24 @@
       ;
   };
 
+  vm-wrapper-env = import ./vm-wrapper-env.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
+  vm-wrapper-quoting = import ./vm-wrapper-quoting.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
   vm-wrapper-validation = import ./vm-wrapper-validation.nix {
     inherit
       pkgs
