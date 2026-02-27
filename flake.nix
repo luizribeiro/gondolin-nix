@@ -20,6 +20,9 @@
         "aarch64-linux"
         "x86_64-linux"
       ];
+
+      # TODO: run `nix flake check --all-systems` in CI once suitable builders
+      # are available for every supported hostSystem.
     in
     {
       lib = {
@@ -52,16 +55,39 @@
         };
 
         checks =
-          (import ./checks {
-            inherit
-              pkgs
-              hostSystem
-              gondolinLib
-              gondolinPackage
-              ;
-          })
+          let
+            baseChecks =
+              (import ./checks {
+                inherit
+                  pkgs
+                  hostSystem
+                  gondolinLib
+                  gondolinPackage
+                  ;
+              })
+              // {
+                pre-commit = pre-commit-check;
+              };
+
+            # checks.<system>.ci is the CI-oriented subset used by GitHub Actions.
+            # Darwin runners on GitHub do not provide an aarch64-linux builder, so
+            # vm-* checks (which build Linux guest assets) are excluded there.
+            ciCheckNames =
+              if pkgs.stdenv.hostPlatform.isDarwin then
+                builtins.filter (name: builtins.match "vm-.*" name == null) (builtins.attrNames baseChecks)
+              else
+                builtins.attrNames baseChecks;
+          in
+          baseChecks
           // {
-            pre-commit = pre-commit-check;
+            ci = pkgs.linkFarm "gondolin-ci-checks" (
+              builtins.map
+                (name: {
+                  inherit name;
+                  path = baseChecks.${name};
+                })
+                ciCheckNames
+            );
           };
 
         devShells.default = pkgs.mkShell {

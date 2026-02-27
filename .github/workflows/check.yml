@@ -27,5 +27,12 @@ jobs:
       - name: Setup Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v13
 
-      - name: Run flake checks
-        run: nix flake check --print-build-logs
+      - name: Run checks
+        run: |
+          set -euo pipefail
+
+          host_system="$(nix eval --impure --raw --expr builtins.currentSystem)"
+
+          nix build --print-build-logs \
+            ".#checks.${host_system}.ci" \
+            ".#packages.${host_system}.gondolin"
