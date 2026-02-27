@@ -5,9 +5,9 @@
 
 Minimal Nix flake for building [Gondolin](https://github.com/earendil-works/gondolin/) guest assets from NixOS and running them.
 
-## Run Gondolin directly (no install, default Alpine guest)
+## Quickstart (60 seconds)
 
-If you just want a quick Gondolin CLI run without installing anything:
+If you just want to run Gondolin without installing anything:
 
 ```bash
 nix run github:luizribeiro/gondolin-nix#gondolin -- bash
@@ -15,32 +15,37 @@ nix run github:luizribeiro/gondolin-nix#gondolin -- bash
 nix run github:luizribeiro/gondolin-nix#gondolin -- exec -- /bin/true
 ```
 
-This uses Gondolin's default behavior (Alpine guest assets), without custom NixOS guest configuration.
-For custom NixOS guests and reproducible assets, use the template/direct flows below.
+This uses Gondolin's default behavior (Alpine guest assets).
 
-## Template usage
+---
+
+## Template usage (recommended)
+
+Create a new project from the included template:
 
 ```bash
 mkdir my-gondolin-vm && cd my-gondolin-vm
 nix flake init -t github:luizribeiro/gondolin-nix#simple-vm
 ```
 
-Interactive shell:
+Run a shell in the VM:
 
 ```bash
 nix run -- bash
 ```
 
-Other Gondolin subcommands work too, for example:
+Run other commands in the VM:
 
 ```bash
 nix run -- exec -- /bin/true
 nix run -- exec -- /bin/sh -lc 'echo hello from vm'
 ```
 
-## Direct usage (without template)
+---
 
-Use `mkGondolinGuestAssets` and `packages.<hostSystem>.gondolin` directly in your own flake, including your own guest NixOS customizations:
+## Direct usage (no template)
+
+Use `lib.mkGondolinGuestAssets` + `packages.<hostSystem>.gondolin` directly in your own flake.
 
 ```nix
 {
@@ -55,27 +60,12 @@ Use `mkGondolinGuestAssets` and `packages.<hostSystem>.gondolin` directly in you
       let
         pkgs = import nixpkgs { system = hostSystem; };
 
+        # 1) Build Linux guest assets (kernel/initramfs/rootfs + manifest)
         guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
           inherit hostSystem;
-          modules = [
-            ({ pkgs, ... }: {
-              networking.hostName = "devbox";
-              time.timeZone = "UTC";
-
-              environment.systemPackages = with pkgs; [
-                bashInteractive
-                curl
-                git
-                jq
-                ripgrep
-                neovim
-              ];
-
-              environment.variables.EDITOR = "nvim";
-            })
-          ];
         };
 
+        # 2) Wrap host gondolin CLI and point it at those assets
         gondolinBin = pkgs.writeShellScriptBin "gondolin-vm" ''
           export GONDOLIN_GUEST_DIR=${guestAssets}
           exec ${gondolin-nix.packages.${hostSystem}.gondolin}/bin/gondolin "$@"
@@ -93,14 +83,48 @@ Run it:
 
 ```bash
 nix run -- bash
-# or
-nix run -- exec -- /bin/sh -lc 'uname -a && git --version && nvim --version | head -n1'
+nix run -- exec -- /bin/sh -lc 'uname -a'
 ```
+
+---
+
+## Customize the guest (minimal example)
+
+You can pass extra NixOS modules to `mkGondolinGuestAssets`.
+
+```nix
+guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
+  inherit hostSystem;
+  modules = [
+    ({ pkgs, ... }: {
+      networking.hostName = "devbox";
+      time.timeZone = "UTC";
+      environment.systemPackages = with pkgs; [ git jq neovim ];
+      environment.variables.EDITOR = "nvim";
+    })
+  ];
+};
+```
+
+Then, for example:
+
+```bash
+nix run -- exec -- /bin/sh -lc 'git --version && jq --version && nvim --version | head -n1'
+```
+
+---
+
+## Mental model
+
+- `lib.mkGondolinGuestAssets` builds Linux guest assets from NixOS config.
+- `packages.<hostSystem>.gondolin` is the host Gondolin CLI binary.
+- Setting `GONDOLIN_GUEST_DIR` makes the CLI use your generated guest assets.
+
+---
 
 ## Public API (stability contract)
 
-The following outputs are the supported, stable API surface of this flake.
-We avoid breaking changes to these APIs.
+The following outputs are the supported, stable API surface of this flake:
 
 - `lib.mkGondolinGuestAssets`
 - `packages.<hostSystem>.gondolin`
@@ -108,19 +132,15 @@ We avoid breaking changes to these APIs.
 
 ### `packages.<hostSystem>.gondolin`
 
-Gondolin host CLI package for the target system. This is what you execute to run subcommands like:
+Gondolin host CLI package for the target system.
+Use it for commands like:
 
 - `gondolin bash`
 - `gondolin exec -- ...`
 
-In downstream flakes, this is typically wrapped with `GONDOLIN_GUEST_DIR` set to your generated guest assets.
-
 ### `templates.simple-vm`
 
-A minimal starter flake that demonstrates end-to-end usage of the stable API:
-
-- builds assets with `lib.mkGondolinGuestAssets`
-- runs VM commands with `packages.<hostSystem>.gondolin`
+A minimal starter flake that demonstrates end-to-end usage of the stable API.
 
 Bootstrap with:
 
@@ -145,11 +165,10 @@ Arguments:
     - `aarch64-darwin`
     - `aarch64-linux`
     - `x86_64-linux`
-  - This is mapped internally to the Linux guest architecture (`aarch64-linux` or `x86_64-linux`).
+  - Internally mapped to Linux guest architecture (`aarch64-linux` or `x86_64-linux`).
 
 - `modules` (optional, list of NixOS modules, default `[]`)
-  - Extra NixOS modules merged into the guest configuration.
-  - Use this to customize packages, environment variables, hostname, timezone, and other guest settings.
+  - Extra NixOS modules merged into guest configuration.
 
 Returns:
 
@@ -159,4 +178,4 @@ Returns:
   - `initramfs.cpio.lz4`
   - `rootfs.ext4`
 
-For development workflow and contribution setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For contribution workflow and CI notes, see [CONTRIBUTING.md](./CONTRIBUTING.md).
