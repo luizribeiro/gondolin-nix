@@ -45,7 +45,7 @@ nix run -- exec -- /bin/sh -lc 'echo hello from vm'
 
 ## Direct usage (no template)
 
-Use `lib.mkGondolinGuestAssets` + `packages.<hostSystem>.gondolin` directly in your own flake.
+Use `lib.mkGondolinGuestAssets` + `lib.mkGondolinVM` directly in your own flake.
 
 ```nix
 {
@@ -58,22 +58,21 @@ Use `lib.mkGondolinGuestAssets` + `packages.<hostSystem>.gondolin` directly in y
   outputs = { nixpkgs, flake-utils, gondolin-nix, ... }:
     flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (hostSystem:
       let
-        pkgs = import nixpkgs { system = hostSystem; };
-
         # 1) Build Linux guest assets (kernel/initramfs/rootfs + manifest)
         guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
           inherit hostSystem;
         };
 
-        # 2) Wrap host gondolin CLI and point it at those assets
-        gondolinBin = pkgs.writeShellScriptBin "gondolin-vm" ''
-          export GONDOLIN_GUEST_DIR=${guestAssets}
-          exec ${gondolin-nix.packages.${hostSystem}.gondolin}/bin/gondolin "$@"
-        '';
+        # 2) Build a wrapper app that exports GONDOLIN_GUEST_DIR
+        gondolinVm = gondolin-nix.lib.mkGondolinVM {
+          inherit hostSystem guestAssets;
+          vm.memfs = [ "/tmp" ];
+          extraFlags = [ "--dns" "1.1.1.1" ];
+        };
       in {
         apps.default = {
           type = "app";
-          program = "${gondolinBin}/bin/gondolin-vm";
+          program = "${gondolinVm}/bin/gondolin-vm";
         };
       });
 }
@@ -118,7 +117,7 @@ nix run -- exec -- /bin/sh -lc 'git --version && jq --version && nvim --version 
 
 - `lib.mkGondolinGuestAssets` builds Linux guest assets from NixOS config.
 - `packages.<hostSystem>.gondolin` is the host Gondolin CLI binary.
-- Setting `GONDOLIN_GUEST_DIR` makes the CLI use your generated guest assets.
+- `lib.mkGondolinVM` builds a wrapper that sets `GONDOLIN_GUEST_DIR` for you.
 
 ---
 
@@ -127,6 +126,7 @@ nix run -- exec -- /bin/sh -lc 'git --version && jq --version && nvim --version 
 The following outputs are the supported, stable API surface of this flake:
 
 - `lib.mkGondolinGuestAssets`
+- `lib.mkGondolinVM`
 - `packages.<hostSystem>.gondolin`
 - `templates.simple-vm`
 
@@ -186,5 +186,55 @@ Returns:
   - `vmlinuz-virt`
   - `initramfs.cpio.lz4`
   - `rootfs.ext4`
+
+### `lib.mkGondolinVM`
+
+```nix
+mkGondolinVM {
+  hostSystem = <string>;
+  guestAssets = <path-or-derivation>;
+
+  name = "gondolin-vm"; # optional
+  gondolinPackage = null; # optional
+  env = { }; # optional
+  vm = { }; # optional
+  extraFlags = [ ]; # optional
+}
+```
+
+Builds a wrapper derivation (`writeShellScriptBin`). `name` controls the wrapper binary path (`/bin/<name>`).
+
+The wrapper:
+
+1. always exports `GONDOLIN_GUEST_DIR=${guestAssets}`
+2. exports non-null values from `env`
+3. dispatches subcommands as follows:
+   - `bash` / `exec`: injects generated VM defaults + `extraFlags`
+   - all others (`list`, `attach`, `snapshot`, `build`, etc.): transparent passthrough
+
+`extraFlags` is an escape hatch for advanced Gondolin CLI options not typed by `vm` yet.
+
+Minimal composition example:
+
+```nix
+let
+  guestAssets = gondolin-nix.lib.mkGondolinGuestAssets {
+    inherit hostSystem;
+  };
+
+  gondolinVm = gondolin-nix.lib.mkGondolinVM {
+    inherit hostSystem guestAssets;
+    vm = {
+      memfs = [ "/tmp" ];
+      network.allowHttpHosts = [ "example.com" ];
+    };
+  };
+in {
+  apps.default = {
+    type = "app";
+    program = "${gondolinVm}/bin/gondolin-vm";
+  };
+}
+```
 
 For contribution workflow and CI notes, see [CONTRIBUTING.md](./CONTRIBUTING.md).
