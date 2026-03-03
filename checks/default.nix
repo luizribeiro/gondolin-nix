@@ -49,6 +49,15 @@
       ;
   };
 
+  vm-e2e-mounts = import ./vm-e2e-mounts.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
   vm-wrapper-flags = import ./vm-wrapper-flags.nix {
     inherit
       pkgs
