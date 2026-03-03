@@ -58,6 +58,15 @@
       ;
   };
 
+  vm-e2e-memfs = import ./vm-e2e-memfs.nix {
+    inherit
+      pkgs
+      hostSystem
+      gondolinLib
+      gondolinPackage
+      ;
+  };
+
   vm-wrapper-flags = import ./vm-wrapper-flags.nix {
     inherit
       pkgs
