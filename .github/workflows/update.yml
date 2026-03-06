@@ -5,9 +5,14 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: auto-update-gondolin
+  cancel-in-progress: true
+
 jobs:
   update-version:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       any-updated: ${{ steps.update.outputs.updated }}
       current: ${{ steps.update.outputs.current }}
@@ -62,6 +67,7 @@ jobs:
     needs: update-version
     if: needs.update-version.outputs.any-updated == 'true'
     runs-on: macos-14
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -74,9 +80,6 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Install Nushell
         run: nix profile install nixpkgs#nushell
@@ -94,6 +97,7 @@ jobs:
     needs: update-version
     if: needs.update-version.outputs.any-updated == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -131,6 +135,7 @@ jobs:
       needs.hashes-aarch64-darwin.result == 'success' &&
       needs.hashes-x86_64-linux.result == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
 
