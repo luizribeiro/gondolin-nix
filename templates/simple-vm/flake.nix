@@ -27,8 +27,10 @@
           ];
         };
 
+        gondolinPackage = gondolin-nix.packages.${hostSystem}.gondolin;
+
         vmWrapper = gondolin-nix.lib.mkGondolinVM {
-          inherit hostSystem guestAssets;
+          inherit hostSystem guestAssets gondolinPackage;
           name = "gondolin-template-vm";
         };
       in
