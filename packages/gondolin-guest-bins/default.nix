@@ -6,13 +6,13 @@
 
 let
   pname = "gondolin-guest-bins";
-  version = "0.5.0";
+  version = "0.6.0";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "gondolin";
     rev = "v${version}";
-    hash = "sha256-f/PpUQcYC7EaIoVGCnW2zyiMNGw4OKxQ9LavrS9FHGQ=";
+    hash = "sha256-3tvXPssS73Vox2N3vRZcMf/CgM4Us37GeEaTtDmgY6Y=";
   };
 
   zigArchive = {
