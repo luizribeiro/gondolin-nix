@@ -8,12 +8,12 @@
 }:
 
 let
-  version = "0.11.0";
+  version = "0.12.0";
   pname = "gondolin";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/gondolin/-/gondolin-${version}.tgz";
-    hash = "sha256-avqFB5CjZcV7RCaBsWV1Q0hb38chn7QW3NT76/TfR4c=";
+    hash = "sha256-J61m91/naoSDiCkfohjprJrG2sR7moGKP8xYkBaj+eI=";
   };
 
   node_modules = stdenvNoCC.mkDerivation {
@@ -57,8 +57,8 @@ let
     dontFixup = true;
 
     outputHash = {
-      "aarch64-darwin" = "sha256-a4FV0Ag0GroGMUJN6Y6K2FGdgxppWVhNH2VcLCW3EEM=";
-      "x86_64-linux" = "sha256-50IJRTxXGZyp31MBW7f2yQVz1lHQvYkc3D/MSPRqJLw=";
+      "aarch64-darwin" = "sha256-vAsPEMpRTYkkEIjpgXj5GuYIfGWDuNQ2Ux/pcbpLZTw=";
+      "x86_64-linux" = "sha256-9Ewa/GMFE7vls/WA9IHBbGfqSUHvY9EdWOLImSgqNeY=";
     }.${stdenvNoCC.system};
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
